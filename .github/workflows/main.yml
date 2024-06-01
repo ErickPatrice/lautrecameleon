@@ -31,7 +31,7 @@ jobs:
           done
 
       - name: Display Drupal status (or any other information)
-        run: docker-compose exec drupal-web drush status
+        run: docker-compose exec drupal-web drush status -y
 
       - name: Always succeed
         run: echo "This job will always succeed"
