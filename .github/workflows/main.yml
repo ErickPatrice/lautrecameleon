@@ -14,8 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build the Docker image 
-        run: docker-compose up -d --build   # Builds images before starting the services
-      - name: Wait for Drupal to be ready (replace with your actual health check command)
+        run: docker-compose up -d --build   
+
+      - name: Wait for Drupal to be ready
         run: |
           for i in {1..60}; do
             if curl -s localhost:8080 | grep -q "Drupal"; then
@@ -26,15 +27,15 @@ jobs:
               sleep 1
             fi
           done
-      - name: Run Drupal tests (replace with your specific test command)
-        run: |
-          docker-compose exec drupal-web drush status # Example: Check Drupal status
-          # Replace with your actual test command
 
-  deploy: # Customize with your specific deployment steps
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/main'  
-    steps:
-      - uses: actions/checkout@v3
-      # Add your deployment steps here (e.g., SCP, rsync, or using a deployment tool)
+      - name: Install Dependencies (if needed)
+        run: docker-compose exec drupal-web composer install # If you need to run Composer
+
+      - name: Prepare environment for PHPUnit
+        run: |
+          docker-compose exec drupal-web chmod +x ./vendor/bin/phpunit # Make PHPUnit executable
+          docker-compose exec drupal-web chown -R www-data:www-data sites/default/files/ # Set file permissions
+
+      - name: Run Drupal Tests (PHPUnit)
+        run: docker-compose exec drupal-web ./vendor/bin/phpunit -c core --testsuite unit
+
