@@ -1,0 +1,40 @@
+name: Drupal CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build the Docker image 
+        run: docker-compose up -d --build   # Builds images before starting the services
+      - name: Wait for Drupal to be ready (replace with your actual health check command)
+        run: |
+          for i in {1..60}; do
+            if curl -s localhost:8080 | grep -q "Drupal"; then
+              echo "Drupal is ready!"
+              break
+            else
+              echo "Waiting for Drupal..."
+              sleep 1
+            fi
+          done
+      - name: Run Drupal tests (replace with your specific test command)
+        run: |
+          docker-compose exec drupal-web drush status # Example: Check Drupal status
+          # Replace with your actual test command
+
+  deploy: # Customize with your specific deployment steps
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'  
+    steps:
+      - uses: actions/checkout@v3
+      # Add your deployment steps here (e.g., SCP, rsync, or using a deployment tool)
