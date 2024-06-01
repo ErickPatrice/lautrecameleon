@@ -1,0 +1,30 @@
+version: '3.8'  # Specify the Compose file version
+
+services:
+  drupal-db:
+    image: mariadb:latest
+    container_name: drupal-db
+    restart: always 
+    environment:
+      MYSQL_ROOT_PASSWORD: mysecretpassword
+      MYSQL_DATABASE: drupal
+      MYSQL_USER: drupal
+      MYSQL_PASSWORD: drupal
+    volumes:
+      - drupal-db-data:/var/lib/mysql  # Persist database data
+
+  drupal-web:
+    image: drupal:latest
+    container_name: drupal-web
+    depends_on:
+      - drupal-db
+    ports:
+      - "8080:80"
+    restart: always
+    
+    volumes:
+      - drupal-web-files:/var/www/html
+
+volumes:
+  drupal-db-data:
+  drupal-web-files:
